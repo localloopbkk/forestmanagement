@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Forest Management Simulator + Carbon Credits Dashboard (PMK DIAMOND GLASS)</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#0f1733; --panel2:#0c132b; --text:#e9eeff; --muted:#aab3d6;
+      --line:rgba(255,255,255,.10); --accent:#7dd3fc; --good:#86efac; --warn:#fbbf24; --bad:#fb7185;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background: radial-gradient(1200px 700px at 10% 0%, rgba(125,211,252,.18), transparent 60%),
+                         radial-gradient(1000px 650px at 90% 20%, rgba(134,239,172,.12), transparent 55%),
+                         var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    a{color:inherit}
+    header{
+      padding:18px 18px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+      position:sticky; top:0; z-index:10; backdrop-filter: blur(10px);
+    }
+    .title h1{margin:0; font-size:18px; letter-spacing:.2px}
+    .title p{margin:4px 0 0; color:var(--muted); font-size:12px; line-height:1.35}
+    .pillrow{display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end}
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      padding:8px 10px; border-radius:999px; font-size:12px; color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+    }
+    .dot{width:8px; height:8px; border-radius:50%; background: var(--accent); box-shadow:0 0 16px rgba(125,211,252,.65)}
+    main{
+      padding:18px;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+      max-width:1400px;
+      margin:0 auto;
+    }
+    @media (max-width: 980px){
+      main{grid-template-columns:1fr}
+      header{position:relative}
+      .pillrow{justify-content:flex-start}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      background: rgba(255,255,255,.03);
+    }
+    .card .hd strong{font-size:13px}
+    .card .hd span{font-size:12px; color:var(--muted)}
+    .card .bd{padding:14px}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+    .kpi{
+      padding:12px; border-radius:14px; border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+    }
+    .kpi .label{font-size:11px; color:var(--muted)}
+    .kpi .value{font-size:18px; margin-top:6px; font-weight:650; letter-spacing:.2px}
+    .kpi .sub{font-size:11px; margin-top:4px; color:var(--muted)}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .btn{
+      border:1px solid var(--line);
+      background: rgba(125,211,252,.10);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:650;
+      font-size:12px;
+    }
+    .btn:hover{background: rgba(125,211,252,.16)}
+    .btn.secondary{background: rgba(255,255,255,.06)}
+    .btn.secondary:hover{background: rgba(255,255,255,.10)}
+    .btn.danger{background: rgba(251,113,133,.14)}
+    .btn.danger:hover{background: rgba(251,113,133,.20)}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    label{font-size:12px; color:var(--muted); display:block; margin:10px 0 6px}
+    input, select{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(10,16,36,.55);
+      color: var(--text);
+      outline:none;
+    }
+    input[type="range"]{padding:0}
+    .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.3}
+    .hr{height:1px; background:var(--line); margin:14px 0}
+    .twoCols{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    }
+    .log{
+      max-height:220px; overflow:auto; padding-right:6px;
+    }
+    .log .item{
+      padding:10px 10px; border:1px solid var(--line); border-radius:12px;
+      background: rgba(255,255,255,.03);
+      margin-bottom:8px;
+    }
+    .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:11px; padding:4px 8px; border-radius:999px;
+      border:1px solid var(--line); background: rgba(255,255,255,.04); color:var(--muted);
+    }
+    canvas{
+      width:100%; height:260px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(0,0,0,.18);
+      display:block;
+    }
+    .canvasTall{height:360px}
+    details{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(255,255,255,.03);
+      padding:10px 12px;
+    }
+    details summary{cursor:pointer; font-weight:650; font-size:12px}
+    details p, details ul{color:var(--muted); font-size:12px; line-height:1.45}
+    .footerNote{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      color:var(--muted);
+      font-size:11px;
+      line-height:1.35;
+      background: rgba(255,255,255,.02);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>Forest Management Simulator + Carbon Credits Dashboard</h1>
+    <p>
+      Scenario: <b>PMK DIAMOND GLASS CO., LTD.</b> offsets part of manufacturing emissions by restoring a former
+      4-wheel off-road race site (2019) into a managed forest ecosystem.<br/>
+      Default land: <b>30 rai</b> (auto-converted to US units below). This is an <i>educational simulator</i>, not a certified MRV tool.
+    </p>
+  </div>
+  <div class="pillrow">
+    <div class="pill"><span class="dot"></span><span id="pillArea">Area: —</span></div>
+    <div class="pill"><span class="dot" style="background:var(--good); box-shadow:0 0 16px rgba(134,239,172,.55)"></span><span id="pillCredits">Credits: —</span></div>
+    <div class="pill"><span class="dot" style="background:var(--warn); box-shadow:0 0 16px rgba(251,191,36,.45)"></span><span id="pillOffset">Offset: —</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: CONTROLS -->
+  <section class="card">
+    <div class="hd">
+      <strong>Inputs</strong>
+      <span class="muted">Change values → Run</span>
+    </div>
+    <div class="bd">
+      <label>Land area (rai)</label>
+      <input id="areaRai" type="number" min="1" step="1" value="30" />
+      <div class="hint" id="areaConverted">—</div>
+
+      <div class="twoCols">
+        <div>
+          <label>Planting / conversion year</label>
+          <input id="plantYear" type="number" min="1900" step="1" value="2020" />
+        </div>
+        <div>
+          <label>Simulation horizon (years)</label>
+          <input id="horizonYears" type="number" min="5" max="80" step="1" value="30" />
+        </div>
+      </div>
+
+      <label>Forest strategy</label>
+      <select id="strategy">
+        <option value="native_mix">Mixed native regeneration (biodiversity first)</option>
+        <option value="fast_grow">Fast-growing timber (higher early sequestration)</option>
+        <option value="agroforest">Agroforestry (food + trees + soil)</option>
+      </select>
+      <div class="hint">Strategy changes growth curve, maximum carbon stock, and biodiversity score.</div>
+
+      <div class="twoCols">
+        <div>
+          <label>Planting density (trees / hectare)</label>
+          <input id="density" type="number" min="200" step="50" value="1000" />
+        </div>
+        <div>
+          <label>Annual mortality (%)</label>
+          <input id="mortality" type="number" min="0" max="20" step="0.1" value="2.5" />
+        </div>
+      </div>
+
+      <label>Thinning schedule (yearly % removed after year 8)</label>
+      <input id="thinning" type="number" min="0" max="10" step="0.1" value="1.2" />
+      <div class="hint">Thinning can improve stand health but may reduce short-term carbon stock. This toy model treats thinned biomass as removed from the project stock.</div>
+
+      <div class="hr"></div>
+
+      <label>Baseline initial carbon stock (tCO₂e / ha)</label>
+      <input id="baselineStock" type="number" min="0" step="0.1" value="2.0" />
+      <div class="hint">Former off-road track often has low biomass; set to 0–5 if you want a “degraded” starting point.</div>
+
+      <label>Non-permanence buffer (%)</label>
+      <input id="buffer" type="number" min="0" max="50" step="0.5" value="15" />
+      <div class="hint">Real carbon programs hold a buffer to cover risks (fire, pests, reversal).</div>
+
+      <div class="twoCols">
+        <div>
+          <label>Carbon price (USD / tCO₂e)</label>
+          <input id="price" type="number" min="0" step="0.5" value="8" />
+        </div>
+        <div>
+          <label>Factory emissions (tCO₂e / year)</label>
+          <input id="factoryEmissions" type="number" min="0" step="10" value="12000" />
+        </div>
+      </div>
+
+      <label>Climate risk: random drought years</label>
+      <select id="riskMode">
+        <option value="none">None</option>
+        <option value="low">Low (≈ 1 drought / 15 yrs)</option>
+        <option value="med" selected>Medium (≈ 1 drought / 10 yrs)</option>
+        <option value="high">High (≈ 1 drought / 6 yrs)</option>
+      </select>
+      <div class="hint">Drought years reduce growth and increase mortality (simulated).</div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <button class="btn" id="runBtn">Run simulation</button>
+        <button class="btn secondary" id="exportBtn">Export CSV</button>
+        <button class="btn danger" id="resetBtn">Reset</button>
+      </div>
+
+      <label>Scrub year</label>
+      <input id="yearScrub" type="range" min="0" max="30" step="1" value="0" />
+      <div class="hint">Use the slider to inspect KPIs and the stand map for a given year.</div>
+
+      <div class="hr"></div>
+
+      <details>
+        <summary>What you’d need for “real” carbon credits (MRV checklist)</summary>
+        <p>
+          This webapp is a planning simulator. For actual credits you’d typically need:
+        </p>
+        <ul>
+          <li>Project boundary + land tenure proof, additionality, and baseline justification</li>
+          <li>Forest inventory plots (DBH/height), species, allometry, and uncertainty analysis</li>
+          <li>Remote sensing (satellite/drone), change detection, leakage assessment</li>
+          <li>Permanence risk plan (firebreaks, monitoring, buffer contribution)</li>
+          <li>Methodology alignment (e.g., Verra VCS, Gold Standard, national programs)</li>
+        </ul>
+      </details>
+    </div>
+    <div class="footerNote">
+      Units note: 1 rai = 1,600 m². 30 rai = 48,000 m² = 4.8 ha ≈ 11.86 acres.
+    </div>
+  </section>
+
+  <!-- RIGHT: DASHBOARD -->
+  <section class="card">
+    <div class="hd">
+      <strong>Dashboard</strong>
+      <span id="dashSubtitle" class="muted">—</span>
+    </div>
+    <div class="bd">
+      <div class="grid3">
+        <div class="kpi">
+          <div class="label">Cumulative removals (tCO₂e)</div>
+          <div class="value" id="kpiCum">—</div>
+          <div class="sub" id="kpiCumSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Credits issued (after buffer)</div>
+          <div class="value" id="kpiCredits">—</div>
+          <div class="sub" id="kpiCreditsSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Factory offset (cumulative)</div>
+          <div class="value" id="kpiOffset">—</div>
+          <div class="sub" id="kpiOffsetSub">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Live trees (est.)</div>
+          <div class="value" id="kpiTrees">—</div>
+          <div class="sub" id="kpiTreesSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Annual removals (selected year)</div>
+          <div class="value" id="kpiAnnual">—</div>
+          <div class="sub" id="kpiAnnualSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Revenue potential (USD)</div>
+          <div class="value" id="kpiRev">—</div>
+          <div class="sub" id="kpiRevSub">—</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="grid2">
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="tag">Chart: cumulative carbon + credits</div>
+            <div class="tag" id="tagBiodiversity">Biodiversity: —</div>
+          </div>
+          <canvas id="chart1" aria-label="Cumulative chart"></canvas>
+          <div class="hint">Line = cumulative removals (tCO₂e). Dots = credits issued (after buffer).</div>
+        </div>
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="tag">Chart: annual net vs factory emissions</div>
+            <div class="tag" id="tagRisk">Risk: —</div>
+          </div>
+          <canvas id="chart2" aria-label="Annual chart"></canvas>
+          <div class="hint">Bars = annual removals. Thin line = factory emissions per year.</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="grid2">
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="tag">Stand map (toy visualization)</div>
+            <div class="tag" id="tagStand">Year: —</div>
+          </div>
+          <canvas id="map" class="canvasTall" aria-label="Forest stand map"></canvas>
+          <div class="hint">
+            Each dot is a “representative tree”. Dot size ~ age; color ~ health / drought impact.
+            (This is a visualization—not a GIS map.)
+          </div>
+        </div>
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="tag">Notes / events</div>
+            <div class="tag" id="tagActions">—</div>
+          </div>
+          <div class="log" id="log"></div>
+          <div class="hint">Drought years, thinning, and growth milestones will appear here.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footerNote">
+      <b>Important:</b> All numbers are simplified planning estimates. If you want, you can later plug in local Thai species growth data,
+      inventory measurements, and align with a specific carbon standard’s methodology.
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n, d=0) => {
+    if (!isFinite(n)) return "—";
+    return n.toLocaleString(undefined, {maximumFractionDigits:d, minimumFractionDigits:d});
+  };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // Unit conversions
+  const RAI_TO_M2 = 1600;
+  const M2_TO_HA = 1/10000;
+  const M2_TO_ACRE = 1/4046.8564224;
+
+  // Strategy presets (toy)
+  const STRATEGIES = {
+    native_mix: {
+      name: "Mixed native regeneration",
+      maxStockTco2ePerHa: 320,  // total above+below-ground at maturity (toy)
+      halfSaturationYears: 18,  // how fast it approaches max
+      soilMaxAddTco2ePerHa: 40, // soil improvement potential (toy)
+      soilHalfYears: 12,
+      biodiversity: 85,
+      droughtGrowthPenalty: 0.18, // fraction reduction
+      droughtMortalityAdd: 1.2
+    },
+    fast_grow: {
+      name: "Fast-growing timber",
+      maxStockTco2ePerHa: 280,
+      halfSaturationYears: 12,
+      soilMaxAddTco2ePerHa: 28,
+      soilHalfYears: 10,
+      biodiversity: 55,
+      droughtGrowthPenalty: 0.25,
+      droughtMortalityAdd: 1.8
+    },
+    agroforest: {
+      name: "Agroforestry",
+      maxStockTco2ePerHa: 220,
+      halfSaturationYears: 16,
+      soilMaxAddTco2ePerHa: 55,
+      soilHalfYears: 9,
+      biodiversity: 75,
+      droughtGrowthPenalty: 0.14,
+      droughtMortalityAdd: 1.0
+    }
+  };
+
+  // Drought frequency mapping (expected interval)
+  const RISK_FREQ = { none: 1e9, low: 15, med: 10, high: 6 };
+
+  // ---------- State ----------
+  let sim = null; // simulation results object (arrays)
+  let repTrees = []; // representative tree points for map visualization
+  let lastCSV = "";
+
+  // ---------- Canvas drawing: simple charts ----------
+  function clearCanvas(cv){
+    const ctx = cv.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const rect = cv.getBoundingClientRect();
+    cv.width = Math.floor(rect.width * dpr);
+    cv.height = Math.floor(rect.height * dpr);
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0,rect.width,rect.height);
+    return {ctx, w:rect.width, h:rect.height};
+  }
+
+  function drawAxes(ctx, w, h, pad){
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "rgba(255,255,255,.16)";
+    ctx.lineWidth = 1;
+    // frame
+    ctx.strokeRect(pad, pad, w - 2*pad, h - 2*pad);
+    // grid
+    ctx.strokeStyle = "rgba(255,255,255,.08)";
+    for (let i=1;i<=4;i++){
+      const y = pad + i*(h-2*pad)/5;
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w-pad, y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawLine(ctx, pts, color, width=2){
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    for (let i=0;i<pts.length;i++){
+      const p = pts[i];
+      if (i===0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawDots(ctx, pts, color, r=3){
+    ctx.save();
+    ctx.fillStyle = color;
+    for (const p of pts){
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawBars(ctx, bars, color){
+    ctx.save();
+    ctx.fillStyle = color;
+    for (const b of bars){
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    }
+    ctx.restore();
+  }
+
+  function drawText(ctx, x, y, s, color="rgba(233,238,255,.9)", size=12, align="left"){
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = `600 ${size}px ui-sans-serif, system-ui`;
+    ctx.textAlign = align;
+    ctx.fillText(s, x, y);
+    ctx.restore();
+  }
+
+  function chartCumulative(){
+    if (!sim) return;
+    const cv = $("chart1");
+    const {ctx, w, h} = clearCanvas(cv);
+    const pad = 34;
+    drawAxes(ctx, w, h, pad);
+
+    const years = sim.years;
+    const cum = sim.cumRemovals;  // tCO2e
+    const creditsCum = sim.cumCredits;
+
+    const maxY = Math.max(1, ...cum, ...creditsCum);
+    const minY = 0;
+
+    const X = (i) => pad + (i/(years.length-1))*(w-2*pad);
+    const Y = (v) => pad + (1 - (v-minY)/(maxY-minY))*(h-2*pad);
+
+    const linePts = years.map((yr, i) => ({x:X(i), y:Y(cum[i])}));
+    const dotPts  = years.map((yr, i) => ({x:X(i), y:Y(creditsCum[i])}));
+
+    // line + dots
+    drawLine(ctx, linePts, "rgba(125,211,252,.95)", 2.5);
+    drawDots(ctx, dotPts, "rgba(134,239,172,.95)", 3);
+
+    // labels
+    drawText(ctx, pad, pad-10, "tCO₂e (cumulative)", "rgba(170,179,214,.9)", 11, "left");
+    drawText(ctx, w-pad, pad-10, `Max: ${fmt(maxY,0)}`, "rgba(170,179,214,.9)", 11, "right");
+
+    // year ticks
+    const step = Math.max(1, Math.floor(years.length/5));
+    for (let i=0;i<years.length;i+=step){
+      const x = X(i);
+      ctx.strokeStyle = "rgba(255,255,255,.10)";
+      ctx.beginPath(); ctx.moveTo(x, h-pad); ctx.lineTo(x, h-pad+6); ctx.stroke();
+      drawText(ctx, x, h-pad+18, String(years[i]), "rgba(170,179,214,.9)", 10, "center");
+    }
+  }
+
+  function chartAnnual(){
+    if (!sim) return;
+    const cv = $("chart2");
+    const {ctx, w, h} = clearCanvas(cv);
+    const pad = 34;
+    drawAxes(ctx, w, h, pad);
+
+    const years = sim.years;
+    const annual = sim.annualRemovals; // tCO2e (net removals that year)
+    const factory = sim.factoryEmissions; // constant
+
+    const maxY = Math.max(1, ...annual, factory);
+    const minY = 0;
+
+    const barW = (w-2*pad)/years.length;
+    const X = (i) => pad + i*barW;
+    const Y = (v) => pad + (1 - (v-minY)/(maxY-minY))*(h-2*pad);
+
+    const bars = years.map((yr,i) => {
+      const v = annual[i];
+      const y = Y(v);
+      const base = Y(0);
+      return {x:X(i)+barW*0.15, y:y, w:barW*0.70, h:base - y, v};
+    });
+    drawBars(ctx, bars, "rgba(134,239,172,.75)");
+
+    // Factory line
+    const yF = Y(factory);
+    ctx.save();
+    ctx.strokeStyle = "rgba(251,191,36,.9)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pad, yF);
+    ctx.lineTo(w-pad, yF);
+    ctx.stroke();
+    ctx.restore();
+
+    drawText(ctx, pad, pad-10, "tCO₂e / year", "rgba(170,179,214,.9)", 11, "left");
+    drawText(ctx, w-pad, pad-10, `Factory: ${fmt(factory,0)}`, "rgba(251,191,36,.9)", 11, "right");
+
+    // year ticks
+    const step = Math.max(1, Math.floor(years.length/6));
+    for (let i=0;i<years.length;i+=step){
+      const x = X(i) + barW*0.5;
+      ctx.strokeStyle = "rgba(255,255,255,.10)";
+      ctx.beginPath(); ctx.moveTo(x, h-pad); ctx.lineTo(x, h-pad+6); ctx.stroke();
+      drawText(ctx, x, h-pad+18, String(years[i]), "rgba(170,179,214,.9)", 10, "center");
+    }
+  }
+
+  // ---------- Map visualization ----------
+  function initRepresentativeTrees(n=700){
+    repTrees = [];
+    for (let i=0;i<n;i++){
+      repTrees.push({
+        x: Math.random(),
+        y: Math.random(),
+        jitter: Math.random(),
+      });
+    }
+  }
+
+  function drawMap(yearIndex){
+    const cv = $("map");
+    const {ctx, w, h} = clearCanvas(cv);
+    const pad = 12;
+
+    // background gradient
+    const g = ctx.createLinearGradient(0,0,w,h);
+    g.addColorStop(0, "rgba(125,211,252,.10)");
+    g.addColorStop(1, "rgba(134,239,172,.10)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    // frame
+    ctx.strokeStyle = "rgba(255,255,255,.12)";
+    ctx.strokeRect(pad, pad, w-2*pad, h-2*pad);
+
+    if (!sim) {
+      drawText(ctx, w/2, h/2, "Run simulation to see stand map", "rgba(233,238,255,.8)", 14, "center");
+      return;
+    }
+
+    const age = yearIndex; // years since planting
+    const drought = sim.droughtYears.includes(sim.years[yearIndex]);
+    const healthFactor = drought ? 0.75 : 1.0;
+
+    // density affects "crowding" look
+    const density = sim.inputs.density;
+    const crowd = clamp((density - 300) / 1700, 0, 1); // 0..1
+    const baseCount = Math.floor(repTrees.length * (0.65 + 0.35*crowd));
+
+    // Dot style by age
+    const dotBase = clamp(1.4 + age*0.12, 1.4, 6.2);
+    const alpha = clamp(0.22 + age*0.02, 0.22, 0.85);
+
+    // Color by drought + stand maturity
+    const mature = clamp(age / sim.inputs.horizonYears, 0, 1);
+    const r = Math.floor( 60 + 40*(1-mature) + (drought ? 60 : 0) );
+    const gg = Math.floor( 170 + 40*mature - (drought ? 40 : 0) );
+    const b = Math.floor( 120 + 60*(1-mature) );
+
+    ctx.save();
+    ctx.globalCompositeOperation = "source-over";
+
+    // "canopy haze"
+    ctx.fillStyle = `rgba(${r},${gg},${b},${0.06*alpha})`;
+    ctx.beginPath();
+    ctx.ellipse(w*0.52, h*0.52, (w-2*pad)*0.48, (h-2*pad)*0.46, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // draw trees
+    for (let i=0;i<baseCount;i++){
+      const t = repTrees[i];
+      const x = pad + t.x*(w-2*pad);
+      const y = pad + t.y*(h-2*pad);
+      const size = dotBase * (0.70 + 0.60*t.jitter) * healthFactor;
+
+      // heat: slight color variation
+      const vr = clamp(r + (t.jitter-0.5)*30, 0, 255);
+      const vg = clamp(gg + (t.jitter-0.5)*40, 0, 255);
+      const vb = clamp(b + (t.jitter-0.5)*20, 0, 255);
+
+      ctx.fillStyle = `rgba(${vr|0},${vg|0},${vb|0},${alpha})`;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // overlays / labels
+    ctx.restore();
+    drawText(ctx, pad+10, pad+22, `Age: ${age} yrs`, "rgba(233,238,255,.90)", 12, "left");
+    drawText(ctx, w-pad-10, pad+22, drought ? "Drought year" : "Normal year",
+             drought ? "rgba(251,191,36,.95)" : "rgba(170,179,214,.9)", 12, "right");
+  }
+
+  // ---------- Simulation core (toy) ----------
+  function logisticStock(maxStock, halfYears, t){
+    // Smooth saturation curve: maxStock * t^p / (t^p + half^p)
+    const p = 2.1;
+    const a = Math.pow(Math.max(0,t), p);
+    const b = Math.pow(Math.max(1e-6, halfYears), p);
+    return maxStock * (a / (a + b));
+  }
+
+  function makeDroughtYears(startYear, horizon, riskMode){
+    const interval = RISK_FREQ[riskMode] ?? 1e9;
+    const years = [];
+    if (interval > 1000) return years;
+
+    // probabilistic: approx 1 drought per interval
+    for (let i=0;i<=horizon;i++){
+      const yr = startYear + i;
+      const p = 1/interval;
+      if (Math.random() < p) years.push(yr);
+    }
+    return years;
+  }
+
+  function runSimulation(){
+    const areaRai = Number($("areaRai").value || 0);
+    const plantYear = Number($("plantYear").value || 2020);
+    const horizon = Number($("horizonYears").value || 30);
+    const strategyKey = $("strategy").value;
+    const density = Number($("density").value || 1000);
+    const mortalityPct = Number($("mortality").value || 2.5);
+    const thinningPct = Number($("thinning").value || 0);
+    const baselineStock = Number($("baselineStock").value || 0);
+    const bufferPct = Number($("buffer").value || 0);
+    const price = Number($("price").value || 0);
+    const factory = Number($("factoryEmissions").value || 0);
+    const riskMode = $("riskMode").value;
+
+    const strat = STRATEGIES[strategyKey] ?? STRATEGIES.native_mix;
+
+    const areaM2 = areaRai * RAI_TO_M2;
+    const areaHa = areaM2 * M2_TO_HA;
+
+    const years = [];
+    const annualRemovals = [];
+    const cumRemovals = [];
+    const annualCredits = [];
+    const cumCredits = [];
+    const liveTrees = [];
+    const droughtYears = makeDroughtYears(plantYear, horizon, riskMode);
+
+    // initial trees
+    const initialTrees = density * areaHa;
+    let trees = initialTrees;
+
+    // carbon stocks
+    let prevTotalStock = baselineStock * areaHa; // tCO2e (start)
+    let cumR = 0;
+    let cumC = 0;
+
+    // simple action log
+    const events = [];
+    events.push({type:"info", text:`Planting year set to ${plantYear}. Initial density ≈ ${fmt(initialTrees,0)} trees across ${fmt(areaHa,2)} ha.`});
+
+    for (let t=0; t<=horizon; t++){
+      const yr = plantYear + t;
+      years.push(yr);
+
+      const isDrought = droughtYears.includes(yr);
+
+      // mortality + drought extra mortality
+      const mort = mortalityPct/100 + (isDrought ? (strat.droughtMortalityAdd/100) : 0);
+      trees = trees * (1 - mort);
+
+      // thinning after year 8 (toy)
+      if (t >= 8 && thinningPct > 0){
+        const thin = thinningPct/100;
+        trees = trees * (1 - thin);
+        if (t === 8) events.push({type:"action", text:`Thinning starts at year ${yr} (~${fmt(thinningPct,1)}%/yr).`});
+      }
+
+      // biomass stock per ha (toy logistic)
+      let stockPerHa = logisticStock(strat.maxStockTco2ePerHa, strat.halfSaturationYears, t);
+      let soilPerHa  = logisticStock(strat.soilMaxAddTco2ePerHa, strat.soilHalfYears, t);
+
+      // drought reduces growth for that year (toy: reduce increment)
+      let totalStock = (baselineStock + stockPerHa + soilPerHa) * areaHa; // absolute stock incl baseline
+      let annual = totalStock - prevTotalStock;
+
+      if (isDrought){
+        annual = annual * (1 - strat.droughtGrowthPenalty);
+        // apply as reduced stock (for visualization consistency)
+        totalStock = prevTotalStock + annual;
+        events.push({type:"warn", text:`${yr} drought: growth reduced (~${fmt(strat.droughtGrowthPenalty*100,0)}%), mortality increased.`});
+      }
+
+      // ensure no negative annual removals in this toy accounting (credits can't be negative)
+      annual = Math.max(0, annual);
+
+      // update cumulative removals from baseline
+      cumR += annual;
+
+      // credits after buffer
+      const credits = annual * (1 - bufferPct/100);
+      cumC += credits;
+
+      annualRemovals.push(annual);
+      cumRemovals.push(cumR);
+      annualCredits.push(credits);
+      cumCredits.push(cumC);
+      liveTrees.push(trees);
+
+      prevTotalStock = totalStock;
+
+      // milestone events
+      if (t === 5) events.push({type:"info", text:`Year ${yr}: early stand establishment complete (toy milestone).`});
+      if (t === 15) events.push({type:"info", text:`Year ${yr}: mid-rotation / canopy closure (toy milestone).`});
+    }
+
+    // compile
+    sim = {
+      inputs: { areaRai, areaHa, plantYear, horizonYears:horizon, strategyKey, density, mortalityPct, thinningPct, baselineStock, bufferPct, price, factoryEmissions:factory, riskMode },
+      strategy: strat,
+      years,
+      annualRemovals,
+      cumRemovals,
+      annualCredits,
+      cumCredits,
+      liveTrees,
+      droughtYears,
+      events
+    };
+
+    // CSV for export
+    lastCSV = makeCSV(sim);
+
+    // Update scrubber
+    $("yearScrub").min = 0;
+    $("yearScrub").max = horizon;
+    $("yearScrub").value = 0;
+
+    // Map points
+    initRepresentativeTrees(800);
+
+    // Render all
+    renderAll();
+  }
+
+  function makeCSV(s){
+    const rows = [];
+    rows.push([
+      "year",
+      "annual_removals_tCO2e",
+      "cumulative_removals_tCO2e",
+      "annual_credits_tCO2e",
+      "cumulative_credits_tCO2e",
+      "live_trees_est"
+    ].join(","));
+    for (let i=0;i<s.years.length;i++){
+      rows.push([
+        s.years[i],
+        s.annualRemovals[i].toFixed(4),
+        s.cumRemovals[i].toFixed(4),
+        s.annualCredits[i].toFixed(4),
+        s.cumCredits[i].toFixed(4),
+        s.liveTrees[i].toFixed(2),
+      ].join(","));
+    }
+    return rows.join("\n");
+  }
+
+  // ---------- UI render ----------
+  function updateAreaPills(){
+    const rai = Number($("areaRai").value || 0);
+    const m2 = rai * RAI_TO_M2;
+    const ha = m2 * M2_TO_HA;
+    const acres = m2 * M2_TO_ACRE;
+    $("areaConverted").textContent =
+      `${fmt(m2,0)} m²  •  ${fmt(ha,2)} ha  •  ${fmt(acres,2)} acres`;
+    $("pillArea").textContent =
+      `Area: ${fmt(rai,0)} rai (${fmt(acres,2)} acres)`;
+  }
+
+  function renderLog(){
+    const el = $("log");
+    el.innerHTML = "";
+    if (!sim){
+      el.innerHTML = `<div class="item"><div class="muted small">No simulation yet. Click <b>Run simulation</b>.</div></div>`;
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    for (const e of sim.events){
+      const div = document.createElement("div");
+      div.className = "item";
+      const badge =
+        e.type === "warn" ? `<span class="tag" style="color:rgba(251,191,36,.95)">⚠︎ drought</span>` :
+        e.type === "action" ? `<span class="tag" style="color:rgba(125,211,252,.95)">✦ management</span>` :
+        `<span class="tag">• note</span>`;
+      div.innerHTML = `${badge}<div style="margin-top:8px" class="small muted">${e.text}</div>`;
+      frag.appendChild(div);
+    }
+    el.appendChild(frag);
+  }
+
+  function renderKPIs(){
+    if (!sim){
+      $("dashSubtitle").textContent = "Run a simulation to populate the dashboard.";
+      ["kpiCum","kpiCredits","kpiOffset","kpiTrees","kpiAnnual","kpiRev"].forEach(id => $(id).textContent="—");
+      ["kpiCumSub","kpiCreditsSub","kpiOffsetSub","kpiTreesSub","kpiAnnualSub","kpiRevSub"].forEach(id => $(id).textContent="—");
+      $("pillCredits").textContent = "Credits: —";
+      $("pillOffset").textContent = "Offset: —";
+      $("tagBiodiversity").textContent = "Biodiversity: —";
+      $("tagRisk").textContent = "Risk: —";
+      $("tagActions").textContent = "—";
+      return;
+    }
+
+    const idx = Number($("yearScrub").value || 0);
+    const yr = sim.years[idx];
+    const age = idx;
+
+    const cum = sim.cumRemovals[idx];
+    const creditsCum = sim.cumCredits[idx];
+    const annual = sim.annualRemovals[idx];
+    const trees = sim.liveTrees[idx];
+
+    const price = sim.inputs.price;
+    const revenue = creditsCum * price;
+
+    // offset
+    const factory = sim.inputs.factoryEmissions;
+    const totalFactory = factory * (age+1);
+    const offsetPct = totalFactory > 0 ? (creditsCum / totalFactory) * 100 : 0;
+
+    // tags / subtitles
+    $("dashSubtitle").textContent = `${STRATEGIES[sim.inputs.strategyKey].name} • Plant year ${sim.inputs.plantYear} • Inspecting ${yr} (age ${age} yrs)`;
+    $("tagStand").textContent = `Year: ${yr}`;
+    $("tagRisk").textContent = `Risk: ${sim.inputs.riskMode.toUpperCase()} • Drought yrs: ${sim.droughtYears.length}`;
+    $("tagBiodiversity").textContent = `Biodiversity: ${sim.strategy.biodiversity}/100`;
+    $("tagActions").textContent = sim.droughtYears.includes(yr) ? "Drought impacts applied" : "Normal conditions";
+
+    // KPIs
+    $("kpiCum").textContent = fmt(cum,0);
+    $("kpiCumSub").textContent = `Baseline stock included: ${fmt(sim.inputs.baselineStock,1)} tCO₂e/ha`;
+
+    $("kpiCredits").textContent = fmt(creditsCum,0);
+    $("kpiCreditsSub").textContent = `Buffer: ${fmt(sim.inputs.bufferPct,1)}% • Credits are “after buffer”`;
+
+    $("kpiOffset").textContent = `${fmt(offsetPct,1)}%`;
+    $("kpiOffsetSub").textContent = `Factory: ${fmt(factory,0)} tCO₂e/yr • Years counted: ${age+1}`;
+
+    $("kpiTrees").textContent = fmt(trees,0);
+    $("kpiTreesSub").textContent = `Initial: ${fmt(sim.inputs.density*sim.inputs.areaHa,0)} • Mortality: ${fmt(sim.inputs.mortalityPct,1)}%/yr`;
+
+    $("kpiAnnual").textContent = fmt(annual,0);
+    $("kpiAnnualSub").textContent = `Selected year removals (tCO₂e). Drought may reduce this.`;
+
+    $("kpiRev").textContent = `$${fmt(revenue,0)}`;
+    $("kpiRevSub").textContent = `${fmt(price,2)} USD/tCO₂e (editable)`;
+
+    // header pills
+    $("pillCredits").textContent = `Credits: ${fmt(sim.cumCredits[sim.cumCredits.length-1],0)} total`;
+    const finalFactory = factory * sim.years.length;
+    const finalOffset = finalFactory > 0 ? (sim.cumCredits[sim.cumCredits.length-1] / finalFactory) * 100 : 0;
+    $("pillOffset").textContent = `Offset: ${fmt(finalOffset,1)}% over ${sim.years.length} yrs`;
+  }
+
+  function renderAll(){
+    updateAreaPills();
+    renderLog();
+    renderKPIs();
+    chartCumulative();
+    chartAnnual();
+    drawMap(Number($("yearScrub").value || 0));
+  }
+
+  // ---------- Actions ----------
+  $("runBtn").addEventListener("click", () => runSimulation());
+
+  $("resetBtn").addEventListener("click", () => {
+    $("areaRai").value = 30;
+    $("plantYear").value = 2020;
+    $("horizonYears").value = 30;
+    $("strategy").value = "native_mix";
+    $("density").value = 1000;
+    $("mortality").value = 2.5;
+    $("thinning").value = 1.2;
+    $("baselineStock").value = 2.0;
+    $("buffer").value = 15;
+    $("price").value = 8;
+    $("factoryEmissions").value = 12000;
+    $("riskMode").value = "med";
+    sim = null;
+    lastCSV = "";
+    $("yearScrub").value = 0;
+    renderAll();
+  });
+
+  $("exportBtn").addEventListener("click", () => {
+    if (!lastCSV){
+      alert("Run a simulation first, then export.");
+      return;
+    }
+    const blob = new Blob([lastCSV], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "forest_carbon_simulation.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // Live updates
+  ["areaRai"].forEach(id => $(id).addEventListener("input", () => updateAreaPills()));
+  $("yearScrub").addEventListener("input", () => {
+    renderKPIs();
+    drawMap(Number($("yearScrub").value || 0));
+  });
+
+  // Re-render charts on resize
+  window.addEventListener("resize", () => {
+    if (!sim) return;
+    chartCumulative();
+    chartAnnual();
+    drawMap(Number($("yearScrub").value || 0));
+  });
+
+  // Init screen
+  updateAreaPills();
+  renderAll();
+
+  // Auto-run once for a nice first view
+  runSimulation();
+})();
+</script>
+</body>
+</html>
